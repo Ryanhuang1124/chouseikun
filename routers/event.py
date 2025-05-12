@@ -10,7 +10,6 @@ router = APIRouter(
     tags=['event']
 )
 
-# 事件請求用 Model
 class RequestEvent(BaseModel):
     title: str
     memo: str = ""
