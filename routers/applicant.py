@@ -1,0 +1,54 @@
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session, relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from datetime import datetime
+from typing import List
+import uuid
+from database import get_db
+from models import Applicant, AvailableTime
+from schemas import ApplicantUpdate
+
+router = APIRouter(
+    prefix='/applicant',
+    tags=['applicant']
+)
+
+class AvailableTimeCreate(BaseModel):
+    time_option_id: int
+
+class ApplicantCreate(BaseModel):
+    event_id: int
+    available_times: List[AvailableTimeCreate]
+
+class AvailableTimeRead(BaseModel):
+    time_option_id: int
+
+class ApplicantRead(BaseModel):
+    id: str
+    event_id: int
+    updated_at: datetime
+    available_times: List[AvailableTimeRead]
+
+    model_config = {"from_attributes": True}
+
+
+@router.post("/create", response_model=ApplicantRead)
+def create_applicant(applicant: ApplicantCreate, db: Session = Depends(get_db)):
+    new_applicant = Applicant(
+        id=str(uuid.uuid4()),
+        event_id=applicant.event_id,
+    )
+    db.add(new_applicant)
+    db.flush()  # get new_applicant.id before committing
+
+    for time in applicant.available_times:
+        db.add(AvailableTime(
+            applicant_id=new_applicant.id,
+            time_option_id=time.time_option_id
+        ))
+
+    db.commit()
+    db.refresh(new_applicant)
+    return new_applicant
+
