@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import Field
 from sqlalchemy.orm import Session,joinedload
 from starlette import status
@@ -78,3 +78,28 @@ def get_applicants_by_event(event_id: int, db: Session = Depends(get_db)):
         .all()
     )
     return applicants
+
+@router.put("/{event_id}", response_model=ResponseEvent)
+async def update_event(
+    event_id: int,
+    request_data: RequestEvent,
+    session: DB_ANNOTATED
+):
+    event = session.query(Event).filter_by(id=event_id).first()
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    event.title = request_data.title
+    event.memo = request_data.memo
+    event.user = request_data.user
+
+    session.query(TimeOption).filter_by(event_id=event.id).delete()
+
+    for option in request_data.time_options:
+        session.add(TimeOption(label=option.label, event_id=event.id))
+
+    session.commit()
+    session.refresh(event)
+
+    return ResponseEvent(msg="Event updated", event_id=event.id)
