@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine
 import models
-from routers import applicant, event
+from routers import applicant, event ,creator
 
 app = FastAPI()
 
@@ -18,3 +18,4 @@ models.Base.metadata.create_all(bind=engine)
 
 app.include_router(event.router)
 app.include_router(applicant.router)
+app.include_router(creator.router)
