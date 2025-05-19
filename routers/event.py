@@ -52,9 +52,9 @@ async def get_all_events(session: DB_ANNOTATED):
     return ResponseEventList(msg="success", count=len(result), event_list=result)
 
 
-@router.get("/by-user/{user_name}", response_model=ResponseEventList)
-async def get_events_by_user(user_name: str, session: DB_ANNOTATED):
-    events = session.query(Event).filter(Event.user == user_name).all()
+@router.get("/by-user/{user_id}", response_model=ResponseEventList)
+async def get_events_by_user(user_id: str, session: DB_ANNOTATED):
+    events = session.query(Event).filter(Event.user == user_id).all()
     result = [
         {
             "id": e.id,

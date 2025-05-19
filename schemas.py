@@ -19,7 +19,7 @@ class RequestEvent(BaseModel):
             "example": {
                 "title": "カラオケ",
                 "memo": "一緒に歌おう",
-                "user": "Ryan",
+                "user": "fbef1ca6-4479-42b1-97bc-06c611d617ca",
                 "time_options": [
                     {"label": "5月20日午後"},
                     {"label": "5月22日夜間"}

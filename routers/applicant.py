@@ -40,7 +40,7 @@ def create_applicant(applicant: ApplicantCreate, db: Session = Depends(get_db)):
         event_id=applicant.event_id,
     )
     db.add(new_applicant)
-    db.flush()  # get new_applicant.id before committing
+    db.flush()
 
     for time in applicant.available_times:
         db.add(AvailableTime(
@@ -52,3 +52,26 @@ def create_applicant(applicant: ApplicantCreate, db: Session = Depends(get_db)):
     db.refresh(new_applicant)
     return new_applicant
 
+@router.patch("/edit/{applicant_id}", response_model=ApplicantRead)
+def update_applicant(
+    applicant_id: str,
+    update_data: ApplicantUpdate,
+    db: Session = Depends(get_db),
+):
+    applicant = db.query(Applicant).filter(Applicant.id == applicant_id).first()
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+
+    db.query(AvailableTime).filter(AvailableTime.applicant_id == applicant_id).delete()
+
+    for time in update_data.available_times:
+        db.add(AvailableTime(
+            applicant_id=applicant_id,
+            time_option_id=time.time_option_id
+        ))
+
+    applicant.updated_at = datetime.now()
+    db.commit()
+    db.refresh(applicant)
+
+    return applicant
