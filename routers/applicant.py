@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from datetime import datetime
 from typing import List
 import uuid

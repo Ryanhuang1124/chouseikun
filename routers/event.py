@@ -6,7 +6,7 @@ from models import Applicant, Event, TimeOption
 from database import DB_ANNOTATED, get_db
 from typing import List
 
-from schemas import ApplicantRead, RequestEvent, ResponseEvent, ResponseEventList
+from schemas import ApplicantRead, RequestEvent, ResponseEvent, ResponseEventDetail, ResponseEventList, TimeOptionRead
 
 router = APIRouter(
     prefix='/event',
@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.post("/create", response_model=ResponseEvent, status_code=status.HTTP_201_CREATED)
+@router.post("/create", response_model=ResponseEventDetail, status_code=status.HTTP_201_CREATED)
 async def create_event(session: DB_ANNOTATED, request_data: RequestEvent):
     event = Event(
         title=request_data.title,
@@ -29,9 +29,26 @@ async def create_event(session: DB_ANNOTATED, request_data: RequestEvent):
         session.add(TimeOption(label=option.label, event_id=event.id))
 
     session.commit()
-    session.refresh(event)
+    event = (
+        session.query(Event)
+        .options(joinedload(Event.time_options))
+        .filter_by(id=event.id)
+        .first()
+    )
 
-    return ResponseEvent(msg="Event created", event_id=event.id)
+    response_data = {
+        "id": event.id,
+        "msg":"イベントを作成しました",
+        "title": event.title,
+        "memo": event.memo,
+        "user": event.user,
+        "time_options": [
+            {"id":to.id,"label": to.label}
+            for to in event.time_options
+        ],
+        "created_at":event.created_at
+    }
+    return response_data
 
 
 @router.get("/", response_model=ResponseEventList)
@@ -49,6 +66,28 @@ async def get_all_events(session: DB_ANNOTATED):
         for e in events
     ]
     return ResponseEventList(msg="success", count=len(result), event_list=result)
+
+@router.get("/{event_id}", response_model=ResponseEventDetail)
+async def get_event_by_id(event_id: int, session: DB_ANNOTATED):
+    event = (
+        session.query(Event)
+        .filter(Event.id == event_id)
+        .first()
+    )
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    return ResponseEventDetail(
+        msg="成功",
+        id=event.id,
+        title=event.title,
+        memo=event.memo,
+        user=event.user,
+        created_at=event.created_at,
+        time_options=[TimeOptionRead.model_validate(opt) for opt in event.time_options]
+    )
+
 
 
 @router.get("/by-user/{user_id}", response_model=ResponseEventList)

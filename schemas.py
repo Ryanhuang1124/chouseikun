@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 from typing import List
 
@@ -7,6 +8,12 @@ class TimeOptionSchema(BaseModel):
     model_config = {
     "from_attributes": True
 }
+
+class TimeOptionRead(BaseModel):
+    id: int
+    label: str
+
+    model_config = {"from_attributes": True}
 
 class RequestEvent(BaseModel):
     title: str
@@ -31,6 +38,17 @@ class RequestEvent(BaseModel):
 class ResponseEvent(BaseModel):
     msg: str
     event_id: int
+
+
+class ResponseEventDetail(BaseModel):
+    msg: str
+    id: int
+    title: str
+    memo: str
+    user: str
+    created_at: datetime
+    time_options: List[TimeOptionRead]
+
 
 
 class ResponseEventList(BaseModel):
