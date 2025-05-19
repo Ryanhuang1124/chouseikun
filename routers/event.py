@@ -14,7 +14,6 @@ router = APIRouter(
 )
 
 
-
 @router.post("/create", response_model=ResponseEvent, status_code=status.HTTP_201_CREATED)
 async def create_event(session: DB_ANNOTATED, request_data: RequestEvent):
     event = Event(
@@ -103,3 +102,20 @@ async def update_event(
     session.refresh(event)
 
     return ResponseEvent(msg="Event updated", event_id=event.id)
+
+
+@router.delete("/{event_id}", response_model=ResponseEvent)
+async def delete_event(event_id: int, session: DB_ANNOTATED):
+    event = session.query(Event).filter_by(id=event_id).first()
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    session.query(TimeOption).filter_by(event_id=event_id).delete()
+
+    session.query(Applicant).filter_by(event_id=event_id).delete()
+
+    session.delete(event)
+    session.commit()
+
+    return ResponseEvent(msg="Event deleted", event_id=event_id)

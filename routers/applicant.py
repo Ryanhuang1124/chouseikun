@@ -75,3 +75,16 @@ def update_applicant(
     db.refresh(applicant)
 
     return applicant
+
+@router.delete("/delete/{applicant_id}")
+def delete_applicant(applicant_id: str, db: Session = Depends(get_db)):
+    applicant = db.query(Applicant).filter(Applicant.id == applicant_id).first()
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+
+    db.query(AvailableTime).filter(AvailableTime.applicant_id == applicant_id).delete()
+
+    db.delete(applicant)
+    db.commit()
+
+    return {"msg": "Applicant deleted", "applicant_id": applicant_id}
