@@ -8,6 +8,22 @@ class TimeOptionSchema(BaseModel):
     model_config = {
     "from_attributes": True
 }
+    
+class TimeOptionIdOnly(BaseModel):
+    time_option_id: int
+
+class ApplicantCreate(BaseModel):
+    event_id: int
+    available_times: List[int]
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "event_id": 1,
+                "available_times": [1, 2]
+            }
+        }
+    }
 
 class TimeOptionRead(BaseModel):
     id: int
@@ -41,7 +57,7 @@ class ResponseEvent(BaseModel):
 
 
 class ResponseEventDetail(BaseModel):
-    msg: str
+    msg: str   
     id: int
     title: str
     memo: str
@@ -50,22 +66,19 @@ class ResponseEventDetail(BaseModel):
     time_options: List[TimeOptionRead]
 
 
-
 class ResponseEventList(BaseModel):
     msg: str
     count: int
     event_list: List[dict]
 
 class AvailableTimeRead(BaseModel):
-    id: int
-    applicant_id: str
     time_option_id: int
     model_config = {
         "from_attributes": True
     }
 
 class ApplicantRead(BaseModel):
-    id: str
+    id: int
     event_id: int
     available_times: List[AvailableTimeRead] = []
     model_config = {
@@ -75,6 +88,11 @@ class AvailableTimeCreate(BaseModel):
     time_option_id: int
 
 class ApplicantUpdate(BaseModel):
-    id: str
-    event_id: int
-    available_times: List[AvailableTimeCreate]
+    available_times: List[int]
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "available_times": [1, 2, 3]
+            }
+        }
+    }

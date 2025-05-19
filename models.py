@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import UUID, ForeignKey,Column,Integer,String,Boolean,DateTime
+from sqlalchemy import UUID, ForeignKey,Column,Integer, PrimaryKeyConstraint,String,Boolean,DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -24,15 +24,17 @@ class TimeOption(Base):
 
 class Applicant(Base):
     __tablename__ = "applicants"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(Integer, primary_key=True, index=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    available_times = relationship("AvailableTime", backref="applicant", cascade="all, delete-orphan")
+    available_times = relationship("AvailableTime", back_populates="applicant", cascade="all, delete-orphan")
 
 
 class AvailableTime(Base):
     __tablename__ = "available_times"
-    id = Column(Integer, primary_key=True)
-    applicant_id = Column(String, ForeignKey("applicants.id"), nullable=False)
-    time_option_id = Column(Integer, ForeignKey("time_options.id"), nullable=False)
+    applicant_id = Column(Integer, ForeignKey("applicants.id"), nullable=False,primary_key=True)
+    time_option_id = Column(Integer, ForeignKey("time_options.id"), nullable=False,primary_key=True)
+    applicant = relationship("Applicant", back_populates="available_times")
+    time_option = relationship("TimeOption")
+

@@ -6,54 +6,39 @@ from typing import List
 import uuid
 from database import get_db
 from models import Applicant, AvailableTime
-from schemas import ApplicantUpdate
+from schemas import ApplicantCreate, ApplicantRead, ApplicantUpdate
 
 router = APIRouter(
     prefix='/applicant',
     tags=['applicant']
 )
 
-class AvailableTimeCreate(BaseModel):
-    time_option_id: int
-
-class ApplicantCreate(BaseModel):
-    event_id: int
-    available_times: List[AvailableTimeCreate]
-
-class AvailableTimeRead(BaseModel):
-    time_option_id: int
-
-class ApplicantRead(BaseModel):
-    id: str
-    event_id: int
-    updated_at: datetime
-    available_times: List[AvailableTimeRead]
-
-    model_config = {"from_attributes": True}
-
 
 @router.post("/create", response_model=ApplicantRead)
 def create_applicant(applicant: ApplicantCreate, db: Session = Depends(get_db)):
     new_applicant = Applicant(
-        id=str(uuid.uuid4()),
         event_id=applicant.event_id,
     )
     db.add(new_applicant)
     db.flush()
+    available_time_objects = []
 
-    for time in applicant.available_times:
-        db.add(AvailableTime(
+    for time_option_id in applicant.available_times:
+        available_time = AvailableTime(
             applicant_id=new_applicant.id,
-            time_option_id=time.time_option_id
-        ))
+            time_option_id=time_option_id
+        )
+        db.add(available_time)
+        available_time_objects.append(available_time)
 
     db.commit()
-    db.refresh(new_applicant)
+    new_applicant.available_times = available_time_objects
+    
     return new_applicant
 
 @router.patch("/edit/{applicant_id}", response_model=ApplicantRead)
 def update_applicant(
-    applicant_id: str,
+    applicant_id: int,
     update_data: ApplicantUpdate,
     db: Session = Depends(get_db),
 ):
@@ -63,10 +48,10 @@ def update_applicant(
 
     db.query(AvailableTime).filter(AvailableTime.applicant_id == applicant_id).delete()
 
-    for time in update_data.available_times:
+    for time_option_id in update_data.available_times:
         db.add(AvailableTime(
             applicant_id=applicant_id,
-            time_option_id=time.time_option_id
+            time_option_id=time_option_id
         ))
 
     applicant.updated_at = datetime.now()

@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.post("/create", response_model=ResponseEventDetail, status_code=status.HTTP_201_CREATED)
-async def create_event(session: DB_ANNOTATED, request_data: RequestEvent):
+async def create_event(request_data: RequestEvent,session: Session = Depends(get_db)):
     event = Event(
         title=request_data.title,
         memo=request_data.memo,
@@ -52,8 +52,8 @@ async def create_event(session: DB_ANNOTATED, request_data: RequestEvent):
 
 
 @router.get("/", response_model=ResponseEventList)
-async def get_all_events(session: DB_ANNOTATED):
-    events = session.query(Event).all()
+async def get_all_events(session: Session = Depends(get_db)):
+    events = session.query(Event).options(joinedload(Event.time_options)).all()
     result = [
         {
             "id": e.id,
@@ -68,9 +68,10 @@ async def get_all_events(session: DB_ANNOTATED):
     return ResponseEventList(msg="success", count=len(result), event_list=result)
 
 @router.get("/{event_id}", response_model=ResponseEventDetail)
-async def get_event_by_id(event_id: int, session: DB_ANNOTATED):
+async def get_event_by_id(event_id: int, session: Session = Depends(get_db)):
     event = (
         session.query(Event)
+        .options(joinedload(Event.time_options))
         .filter(Event.id == event_id)
         .first()
     )
@@ -88,10 +89,8 @@ async def get_event_by_id(event_id: int, session: DB_ANNOTATED):
         time_options=[TimeOptionRead.model_validate(opt) for opt in event.time_options]
     )
 
-
-
 @router.get("/by-user/{user_id}", response_model=ResponseEventList)
-async def get_events_by_user(user_id: str, session: DB_ANNOTATED):
+async def get_events_by_user(user_id: str, session: Session = Depends(get_db)):
     events = session.query(Event).filter(Event.user == user_id).all()
     result = [
         {
@@ -121,7 +120,7 @@ def get_applicants_by_event(event_id: int, db: Session = Depends(get_db)):
 async def update_event(
     event_id: int,
     request_data: RequestEvent,
-    session: DB_ANNOTATED
+    session: Session = Depends(get_db)
 ):
     event = session.query(Event).filter_by(id=event_id).first()
 
@@ -144,7 +143,7 @@ async def update_event(
 
 
 @router.delete("/{event_id}", response_model=ResponseEvent)
-async def delete_event(event_id: int, session: DB_ANNOTATED):
+async def delete_event(event_id: int, session: Session = Depends(get_db)):
     event = session.query(Event).filter_by(id=event_id).first()
 
     if not event:
