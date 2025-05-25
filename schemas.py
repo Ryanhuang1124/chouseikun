@@ -77,7 +77,7 @@ class ResponseEventList(BaseModel):
     event_list: List[dict]
 
 class AvailableTimeRead(BaseModel):
-    time_option_id: int
+    time_option: TimeOptionRead
     model_config = {
         "from_attributes": True
     }
