@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class TimeOptionSchema(BaseModel):
@@ -86,6 +86,8 @@ class ApplicantRead(BaseModel):
     id: int
     event_id: int
     available_times: List[AvailableTimeRead] = []
+    name:str
+    memo:Optional[str] = None
     model_config = {
         "from_attributes": True
     }
@@ -94,10 +96,12 @@ class AvailableTimeCreate(BaseModel):
 
 class ApplicantUpdate(BaseModel):
     available_times: List[int]
+    memo: Optional[str] = None
     model_config = {
         "json_schema_extra": {
             "example": {
-                "available_times": [1, 2, 3]
+                "available_times": [1, 2, 3],
+                "memo": "変更しました！",
             }
         }
     }

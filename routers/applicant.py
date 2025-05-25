@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, relationship
 from datetime import datetime
 from typing import List
-import uuid
 from database import get_db
 from models import Applicant, AvailableTime
 from schemas import ApplicantCreate, ApplicantRead, ApplicantUpdate
@@ -12,7 +11,6 @@ router = APIRouter(
     prefix='/applicant',
     tags=['applicant']
 )
-
 
 @router.post("/create", response_model=ApplicantRead)
 def create_applicant(applicant: ApplicantCreate, db: Session = Depends(get_db)):
@@ -47,6 +45,9 @@ def update_applicant(
     applicant = db.query(Applicant).filter(Applicant.id == applicant_id).first()
     if not applicant:
         raise HTTPException(status_code=404, detail="Applicant not found")
+    
+    if update_data.memo is not None:
+        applicant.memo = update_data.memo
 
     db.query(AvailableTime).filter(AvailableTime.applicant_id == applicant_id).delete()
 
