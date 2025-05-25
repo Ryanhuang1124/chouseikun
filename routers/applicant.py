@@ -18,6 +18,8 @@ router = APIRouter(
 def create_applicant(applicant: ApplicantCreate, db: Session = Depends(get_db)):
     new_applicant = Applicant(
         event_id=applicant.event_id,
+        name=applicant.name,
+        memo=applicant.memo,
     )
     db.add(new_applicant)
     db.flush()

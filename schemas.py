@@ -15,12 +15,17 @@ class TimeOptionIdOnly(BaseModel):
 class ApplicantCreate(BaseModel):
     event_id: int
     available_times: List[int]
+    name:str
+    memo:str
+    
 
     model_config = {
         "json_schema_extra": {
             "example": {
                 "event_id": 1,
-                "available_times": [1, 2]
+                "available_times": [1, 2],
+                "name": "山田太郎",
+                "memo": "よろしくお願いします"
             }
         }
     }

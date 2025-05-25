@@ -26,6 +26,8 @@ class Applicant(Base):
     __tablename__ = "applicants"
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    name = Column(String)
+    memo = Column(String)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     available_times = relationship("AvailableTime", back_populates="applicant", cascade="all, delete-orphan")
