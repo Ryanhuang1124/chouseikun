@@ -13,12 +13,14 @@ class Event(Base):
     user = Column(String)
     created_at = Column(DateTime, default=datetime.now)
     time_options = relationship("TimeOption", back_populates="event", cascade="all, delete")
+    applicants = relationship("Applicant", back_populates="event", cascade="all, delete")
+
 
 class TimeOption(Base):
     __tablename__ = "time_options"
     id = Column(Integer, primary_key=True)
     label = Column(String)
-    event_id = Column(Integer, ForeignKey("events.id"))
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     event = relationship("Event", back_populates="time_options")
     available_times = relationship(
         "AvailableTime",
@@ -34,6 +36,8 @@ class Applicant(Base):
     name = Column(String)
     memo = Column(String)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    event = relationship("Event", back_populates="applicants")
 
     available_times = relationship("AvailableTime", back_populates="applicant", cascade="all, delete-orphan")
 

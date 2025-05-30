@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import Field
 from sqlalchemy.orm import Session,joinedload
 from starlette import status
-from models import Applicant, Event, TimeOption
+from models import Applicant, AvailableTime, Event, TimeOption
 from database import DB_ANNOTATED, get_db
 from typing import List
 
@@ -150,10 +150,6 @@ async def delete_event(event_id: int, session: Session = Depends(get_db)):
 
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-
-    session.query(TimeOption).filter_by(event_id=event_id).delete()
-
-    session.query(Applicant).filter_by(event_id=event_id).delete()
 
     session.delete(event)
     session.commit()
