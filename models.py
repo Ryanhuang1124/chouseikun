@@ -20,6 +20,11 @@ class TimeOption(Base):
     label = Column(String)
     event_id = Column(Integer, ForeignKey("events.id"))
     event = relationship("Event", back_populates="time_options")
+    available_times = relationship(
+        "AvailableTime",
+        cascade="all, delete-orphan",
+        back_populates="time_option"
+    )
 
 
 class Applicant(Base):
@@ -38,5 +43,5 @@ class AvailableTime(Base):
     applicant_id = Column(Integer, ForeignKey("applicants.id"), nullable=False,primary_key=True)
     time_option_id = Column(Integer, ForeignKey("time_options.id"), nullable=False,primary_key=True)
     applicant = relationship("Applicant", back_populates="available_times")
-    time_option = relationship("TimeOption")
+    time_option = relationship("TimeOption",back_populates = "available_times")
 

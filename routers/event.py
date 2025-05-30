@@ -13,7 +13,6 @@ router = APIRouter(
     tags=['event']
 )
 
-
 @router.post("/create", response_model=ResponseEventDetail, status_code=status.HTTP_201_CREATED)
 async def create_event(request_data: RequestEvent,session: Session = Depends(get_db)):
     event = Event(
@@ -131,10 +130,13 @@ async def update_event(
     event.memo = request_data.memo
     event.user = request_data.user
 
-    session.query(TimeOption).filter_by(event_id=event.id).delete()
 
+    # 清空舊的 time_options，會自動 cascade 刪除 related available_times
+    event.time_options.clear()
+
+    # 加入新的 time_options
     for option in request_data.time_options:
-        session.add(TimeOption(label=option.label, event_id=event.id))
+        event.time_options.append(TimeOption(label=option.label))
 
     session.commit()
     session.refresh(event)
